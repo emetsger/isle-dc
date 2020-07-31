@@ -1,0 +1,60 @@
+version: "3.7"
+
+services:
+  ldap:
+    image: oapass/ldap:20200610-jhu@sha256:44d56b80763c8f11d5db082d3bd2ab78614fcb8e7b6544a146b48d098a2672ce
+    ports:
+      - "389:389"
+
+  idp:
+    image: emetsger/simplesaml-idp:20200710
+    depends_on:
+      - ldap
+    environment:
+      - JETTY_MAX_HEAP=64m
+      - JETTY_BROWSER_SSL_KEYSTORE_PASSWORD=password
+      - JETTY_BACKCHANNEL_SSL_KEYSTORE_PASSWORD=password
+    secrets:
+      - source: idp_backchannel
+      - source: idp_browser
+      - source: idp_encryption
+      - source: idp_signing
+      - source: idp_sealer
+    ports:
+      - "4443:4443"
+      - "8443:8443"
+    networks:
+      default:
+        aliases:
+          - idp-${COMPOSE_PROJECT_NAME-isle-dc}-${DRUPAL_SITE_HOST-traefik.me}
+          - idp-${COMPOSE_PROJECT_NAME-isle-dc}.${DRUPAL_SITE_HOST-traefik.me}
+      gateway:
+        aliases:
+          - idp-${COMPOSE_PROJECT_NAME-isle-dc}-${DRUPAL_SITE_HOST-traefik.me}
+          - idp-${COMPOSE_PROJECT_NAME-isle-dc}.${DRUPAL_SITE_HOST-traefik.me}
+
+secrets:
+  idp_backchannel:
+    file: ./secrets/idp/idp-backchannel.p12
+  idp_backchannel_pem:
+    file: ./secrets/idp/idp-backchannel.pem
+  idp_browser:
+    file: ./secrets/idp/idp-browser.p12
+  idp_browser_pem:
+    file: ./secrets/idp/idp-browser.pem
+  idp_encryption:
+    file: ./secrets/idp/idp-encryption.key
+  idp_signing:
+    file: ./secrets/idp/idp-signing.key
+  idp_signing_cert:
+    file: ./secrets/sp/idp-signing-cert.pem
+  idp_sealer:
+    file: ./secrets/idp/sealer.jks
+  sp_key:
+    file: ./secrets/sp/sp-key.pem
+  sp_cert:
+    file: ./secrets/sp/sp-cert.pem
+
+networks:
+  default:
+    internal: true

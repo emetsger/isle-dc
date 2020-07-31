@@ -35,6 +35,13 @@ ifeq ($(INCLUDE_ETCD_SERVICE), true)
 	ETCD_SERVICE := etcd
 endif
 
+# Include SAML services by default
+ifeq ($(INCLUDE_SAML_SERVICE), false)
+	SAML_SERVICE := ""
+else
+    SAML_SERVICE := saml
+endif
+
 # Allows for customization of the environment variables inside of the containers.
 # If it does not exist create it from docker-compose.sample.env.yml.
 OVERRIDE_SERVICE_ENVIRONMENT_VARIABLES=$(shell \
@@ -46,7 +53,7 @@ OVERRIDE_SERVICE_ENVIRONMENT_VARIABLES=$(shell \
 # The services to be run (order is important), as services can override one
 # another. Traefik must be last if included as otherwise its network 
 # definition for `gateway` will be overriden.
-SERVICES := $(REQUIRED_SERIVCES) $(WATCHTOWER_SERVICE) $(ETCD_SERVICE) $(ENVIRONMENT) $(TRAEFIK_SERVICE) $(OVERRIDE_SERVICE_ENVIRONMENT_VARIABLES)
+SERVICES := $(REQUIRED_SERIVCES) $(WATCHTOWER_SERVICE) $(ETCD_SERVICE) $(ENVIRONMENT) $(TRAEFIK_SERVICE) $(SAML_SERVICE) $(OVERRIDE_SERVICE_ENVIRONMENT_VARIABLES)
 
 default: download-default-certs docker-compose.yml pull
 
